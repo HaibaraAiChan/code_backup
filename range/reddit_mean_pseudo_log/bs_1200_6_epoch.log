@@ -1,0 +1,123 @@
+main start at this time 1632125285.2730627
+before load_data step Time(s): 0.0019
+after load_dataset step Time(s): 4.9245
+after inductive else step Time(s): 0.0001
+args.data_cpu
+False
+after label step Time(s): 3.7912
+after train_g.create_formats_() step Time(s): 1.2659
+after pack data step Time(s): 0.0067
+
+----main run function: start generate block_dataloader from full batch train graph
+- -- -- --- -- -- --weights_list-- -- -- ------- -- -- -----
+128
+after generate_random_mini_batch_seeds_list
+time of batches_nid_list generation : 0.06493067741394043 sec
+
+ *************************************   src nid of full_batch_block_graph
+
+ *************************************   dict_nid_2_local
+full batch block_eids_global_list
+1485901
+res----------------------------------------
+
+connection checking time 13.839529037475586
+total of block generation time 1.1541969776153564
+average of block generation time 0.009017163887619972
+
+----main run function: block dataloader generation total spend   15.28935432434082
+
+----main run function: start generate block_dataloader from full batch train graph
+- -- -- --- -- -- --weights_list-- -- -- ------- -- -- -----
+128
+after generate_random_mini_batch_seeds_list
+time of batches_nid_list generation : 0.10245013236999512 sec
+
+ *************************************   src nid of full_batch_block_graph
+
+ *************************************   dict_nid_2_local
+full batch block_eids_global_list
+1485901
+res----------------------------------------
+
+connection checking time 14.03095555305481
+total of block generation time 1.3999474048614502
+average of block generation time 0.01093708910048008
+
+----main run function: block dataloader generation total spend   15.995042085647583
+
+----main run function: start generate block_dataloader from full batch train graph
+- -- -- --- -- -- --weights_list-- -- -- ------- -- -- -----
+128
+after generate_random_mini_batch_seeds_list
+time of batches_nid_list generation : 0.11898088455200195 sec
+
+ *************************************   src nid of full_batch_block_graph
+
+ *************************************   dict_nid_2_local
+full batch block_eids_global_list
+1485901
+res----------------------------------------
+
+connection checking time 13.56332778930664
+total of block generation time 1.187361240386963
+average of block generation time 0.009276259690523148
+
+----main run function: block dataloader generation total spend   15.34102725982666
+
+----main run function: start generate block_dataloader from full batch train graph
+- -- -- --- -- -- --weights_list-- -- -- ------- -- -- -----
+128
+after generate_random_mini_batch_seeds_list
+time of batches_nid_list generation : 0.0810081958770752 sec
+
+ *************************************   src nid of full_batch_block_graph
+
+ *************************************   dict_nid_2_local
+full batch block_eids_global_list
+1485901
+res----------------------------------------
+
+connection checking time 13.998207330703735
+total of block generation time 1.2344262599945068
+average of block generation time 0.009643955156207085
+
+----main run function: block dataloader generation total spend   15.663767099380493
+
+----main run function: start generate block_dataloader from full batch train graph
+- -- -- --- -- -- --weights_list-- -- -- ------- -- -- -----
+128
+after generate_random_mini_batch_seeds_list
+time of batches_nid_list generation : 0.10744047164916992 sec
+
+ *************************************   src nid of full_batch_block_graph
+
+ *************************************   dict_nid_2_local
+full batch block_eids_global_list
+1485901
+res----------------------------------------
+
+connection checking time 13.956939220428467
+total of block generation time 1.2471234798431396
+average of block generation time 0.009743152186274529
+
+----main run function: block dataloader generation total spend   15.675873041152954
+
+----main run function: start generate block_dataloader from full batch train graph
+- -- -- --- -- -- --weights_list-- -- -- ------- -- -- -----
+128
+after generate_random_mini_batch_seeds_list
+time of batches_nid_list generation : 0.0751345157623291 sec
+
+ *************************************   src nid of full_batch_block_graph
+
+ *************************************   dict_nid_2_local
+full batch block_eids_global_list
+1485901
+res----------------------------------------
+
+connection checking time 14.143362760543823
+total of block generation time 1.2607035636901855
+average of block generation time 0.009849246591329575
+
+----main run function: block dataloader generation total spend   15.834348678588867
