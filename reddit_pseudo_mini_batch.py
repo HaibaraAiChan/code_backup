@@ -326,12 +326,12 @@ if __name__=='__main__':
 		help="GPU device ID. Use -1 for CPU training")
 	argparser.add_argument('--seed', type=int, default=1236)
 
-	argparser.add_argument('--dataset', type=str, default='ogbn-products')
-	argparser.add_argument('--aggre', type=str, default='lstm')
+	# argparser.add_argument('--dataset', type=str, default='ogbn-products')
+	# argparser.add_argument('--aggre', type=str, default='lstm')
 	# argparser.add_argument('--dataset', type=str, default='cora')
-	# argparser.add_argument('--dataset', type=str, default='karate')
+	argparser.add_argument('--dataset', type=str, default='karate')
 	# argparser.add_argument('--dataset', type=str, default='reddit')
-	# argparser.add_argument('--aggre', type=str, default='mean')
+	argparser.add_argument('--aggre', type=str, default='mean')
 	argparser.add_argument('--selection-method', type=str, default='range')
 	argparser.add_argument('--num-epochs', type=int, default=6)
 	argparser.add_argument('--num-hidden', type=int, default=16)
@@ -346,7 +346,7 @@ if __name__=='__main__':
 	# argparser.add_argument('--batch-size', type=int, default=4795)
 	# argparser.add_argument('--batch-size', type=int, default=2400)
 	# argparser.add_argument('--batch-size', type=int, default=1200)
-	# argparser.add_argument('--batch-size', type=int, default=8)
+	argparser.add_argument('--batch-size', type=int, default=8)
 
 	
 	argparser.add_argument('--log-every', type=int, default=5)

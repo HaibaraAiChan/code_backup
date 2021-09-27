@@ -44,6 +44,13 @@ def compute_acc(pred, labels):
 	labels = labels.long()
 	return (torch.argmax(pred, dim=1)==labels).float().sum() / len(pred)
 
+def intersection_of_2_batches(tensor_a, tensor_b):
+
+	indices = torch.zeros_like(tensor_a, dtype = torch.bool)
+	for elem in tensor_b:
+	    indices = indices | (tensor_a == elem)  
+	intersection = tensor_a[indices]  
+	return intersection
 
 def evaluate(model, g, nfeat, labels, val_nid, device):
 	"""
@@ -162,116 +169,160 @@ def run(args, device, data, tic):
 			loss_sum = 0
 			train_start_tic = time.time()
 			tic_step = time.time()
-
+			batch_nodes_tensor_list = []
 			for step, (input_node, seeds, blocks) in enumerate(block_dataloader):
 				# print("\n   ***************************     step   " + str(step) + " mini batch block  *************************************")
+				batch_nodes_tensor_list.append(input_node)
+			num_batches=len(block_dataloader)
+			redundancy_dict={}
+			
+			print_str = "Batch ID  "
+
+			for i in range(num_batches):
+				left_label_num =len(batch_nodes_tensor_list[i])
+				key = str(i)+"("+str(left_label_num)+")"
+				print("---------------------------------------------------------------current batch id is "+ str(i))
+				if i+1!=num_batches:
+					redundancy_dict[key]=[]
+				for j in range(i+1,num_batches):
+					print(len(batch_nodes_tensor_list[i]))
+					print(len(batch_nodes_tensor_list[j]))
+					if i ==0:
+						print_str += "|"+str(j)+'('+str(len(batch_nodes_tensor_list[j]))+")"
+					tt = intersection_of_2_batches(batch_nodes_tensor_list[i], batch_nodes_tensor_list[j])
+					# redundancy_list.append(tt)
+					redundancy_dict[key].append(len(tt))
+					print("current redundancy is: "+str(len(tt))+"\n")
+					# print("current redundancy is: "+str(tt)+"\n")
+			print("redundancy_dict")
+			print(print_str)
+			idx =0
+			for key in redundancy_dict:
+				cur_str=""
+				idx+=1
+				for i in redundancy_dict[key]:
+					cur_str += str(i)+'\t'
+				print(key +" | "+'\t'*idx + cur_str)
+			
+
+
+
+
+
+
+
+
+
+
+			# for step, (input_node, seeds, blocks) in enumerate(block_dataloader):
+			# 	# print("\n   ***************************     step   " + str(step) + " mini batch block  *************************************")
+			# 	batch_nodes_tensor_list.append(input_node)
+	# 			torch.cuda.synchronize()
+	# 			start.record()
 				
-				torch.cuda.synchronize()
-				start.record()
-				
-				# Load the input features as well as output labels
-				batch_inputs, batch_labels = load_blocks_subtensor(train_g, train_labels, blocks, device)
-				blocks = [block.int().to(device) for block in blocks]
+	# 			# Load the input features as well as output labels
+	# 			batch_inputs, batch_labels = load_blocks_subtensor(train_g, train_labels, blocks, device)
+	# 			blocks = [block.int().to(device) for block in blocks]
 
-				end.record()
-				torch.cuda.synchronize()  # wait for move to complete
-				step_data_trans_time_list.append(start.elapsed_time(end))
-				#----------------------------------------------------------------------------------------
-				start1 = torch.cuda.Event(enable_timing=True)
-				end1 = torch.cuda.Event(enable_timing=True)
-				start1.record()
+	# 			end.record()
+	# 			torch.cuda.synchronize()  # wait for move to complete
+	# 			step_data_trans_time_list.append(start.elapsed_time(end))
+	# 			#----------------------------------------------------------------------------------------
+	# 			start1 = torch.cuda.Event(enable_timing=True)
+	# 			end1 = torch.cuda.Event(enable_timing=True)
+	# 			start1.record()
 
-				# Compute loss and prediction
-				batch_pred = model(blocks, batch_inputs)
-				pseudo_mini_loss = loss_fcn(batch_pred, batch_labels)
-				pseudo_mini_loss = pseudo_mini_loss*weights_list[step]
-				pseudo_mini_loss.backward()
-				loss_sum += pseudo_mini_loss
+	# 			# Compute loss and prediction
+	# 			batch_pred = model(blocks, batch_inputs)
+	# 			pseudo_mini_loss = loss_fcn(batch_pred, batch_labels)
+	# 			pseudo_mini_loss = pseudo_mini_loss*weights_list[step]
+	# 			pseudo_mini_loss.backward()
+	# 			loss_sum += pseudo_mini_loss
 
-				end1.record()
-				torch.cuda.synchronize()  # wait for all training steps to complete
-				step_GPU_train_time_list.append(start1.elapsed_time(end1))
+	# 			end1.record()
+	# 			torch.cuda.synchronize()  # wait for all training steps to complete
+	# 			step_GPU_train_time_list.append(start1.elapsed_time(end1))
 
-				step_time = time.time() - tic_step
-				step_time_list.append(step_time)
-				torch.cuda.empty_cache()
-				# print(step_time)
+	# 			step_time = time.time() - tic_step
+	# 			step_time_list.append(step_time)
+	# 			torch.cuda.empty_cache()
+	# 			# print(step_time)
 
-				iter_tput.append(len(seeds) / (time.time() - tic_step))
+	# 			iter_tput.append(len(seeds) / (time.time() - tic_step))
 
-				tic_step = time.time()
+	# 			tic_step = time.time()
 
-			# see_memory_usage("-----------------------------------------before final loss ")
+	# 		# see_memory_usage("-----------------------------------------before final loss ")
 
-			optimizer.step()
-			optimizer.zero_grad()
+	# 		optimizer.step()
+	# 		optimizer.zero_grad()
 
-			train_end_toc = time.time()
+	# 		train_end_toc = time.time()
 
-			epoch_train_CPU_time_list.append((train_end_toc - train_start_tic ))
-			print('current Epoch training on CPU without block data loder Time(s): {:.4f}'.format(train_end_toc - train_start_tic ))
-			# see_memory_usage("-----------------------------------------after optimizer.step() ")
+	# 		epoch_train_CPU_time_list.append((train_end_toc - train_start_tic ))
+	# 		print('current Epoch training on CPU without block data loder Time(s): {:.4f}'.format(train_end_toc - train_start_tic ))
+	# 		# see_memory_usage("-----------------------------------------after optimizer.step() ")
 
-			# print('full batch loss ' + str(full_batch_loss.tolist()))
+	# 		# print('full batch loss ' + str(full_batch_loss.tolist()))
 			
-			print('pseudo_mini_loss  ' + str(pseudo_mini_loss.tolist()))
-			print('pseudo_mini_loss sum ' + str(loss_sum.tolist()))
-			if epoch % args.log_every==0:
-				acc = compute_acc(batch_pred, batch_labels)
-				gpu_mem_alloc = torch.cuda.max_memory_allocated() / 1024 / 1024 /1024 if torch.cuda.is_available() else 0
-				print(
-					'Epoch {:05d} | Step {:05d} | Loss {:.4f} | Train Acc {:.4f} | Speed (samples/sec) {:.4f} | GPU {:.4f} GB'.format(
-						epoch, 0, pseudo_mini_loss.item(), acc.item(), np.mean(iter_tput[3:]), gpu_mem_alloc))
+	# 		print('pseudo_mini_loss  ' + str(pseudo_mini_loss.tolist()))
+	# 		print('pseudo_mini_loss sum ' + str(loss_sum.tolist()))
+	# 		if epoch % args.log_every==0:
+	# 			acc = compute_acc(batch_pred, batch_labels)
+	# 			gpu_mem_alloc = torch.cuda.max_memory_allocated() / 1024 / 1024 /1024 if torch.cuda.is_available() else 0
+	# 			print(
+	# 				'Epoch {:05d} | Step {:05d} | Loss {:.4f} | Train Acc {:.4f} | Speed (samples/sec) {:.4f} | GPU {:.4f} GB'.format(
+	# 					epoch, 0, pseudo_mini_loss.item(), acc.item(), np.mean(iter_tput[3:]), gpu_mem_alloc))
 
-			#
-			#
-			indent = 0
-			if len(step_data_trans_time_list[indent:]) > 0:
-				avg_iteration_time = sum(step_data_trans_time_list[indent:]) / len(step_data_trans_time_list[indent:])
-				print('\t\tavg iteration(step) data from cpu to GPU time:%.8f ms' % (avg_iteration_time))
-				avg_step_data_trans_time_list.append(avg_iteration_time)
+	# 		#
+	# 		#
+	# 		indent = 0
+	# 		if len(step_data_trans_time_list[indent:]) > 0:
+	# 			avg_iteration_time = sum(step_data_trans_time_list[indent:]) / len(step_data_trans_time_list[indent:])
+	# 			print('\t\tavg iteration(step) data from cpu to GPU time:%.8f ms' % (avg_iteration_time))
+	# 			avg_step_data_trans_time_list.append(avg_iteration_time)
 			
-				avg_iteration_gpu_time = sum(step_GPU_train_time_list[indent:]) / len(step_GPU_train_time_list[indent:])
-				print('\t\tavg iteration GPU training time:%.8f ms' % (avg_iteration_gpu_time))
-				avg_step_GPU_train_time_list.append(avg_iteration_gpu_time)
+	# 			avg_iteration_gpu_time = sum(step_GPU_train_time_list[indent:]) / len(step_GPU_train_time_list[indent:])
+	# 			print('\t\tavg iteration GPU training time:%.8f ms' % (avg_iteration_gpu_time))
+	# 			avg_step_GPU_train_time_list.append(avg_iteration_gpu_time)
 			
-				avg_step_time = sum(step_time_list[indent:]) / len(step_time_list[indent:])
-				print('\t\tavg iteration (step) total cpu time:%.8f ms' % (avg_step_time * 1000))
-				avg_step_time_list.append(avg_step_time)
+	# 			avg_step_time = sum(step_time_list[indent:]) / len(step_time_list[indent:])
+	# 			print('\t\tavg iteration (step) total cpu time:%.8f ms' % (avg_step_time * 1000))
+	# 			avg_step_time_list.append(avg_step_time)
 			
 			
-			# if epoch % args.eval_every == 0 and epoch != 0:
-			# 	eval_acc = evaluate(model, val_g, val_nfeat, val_labels, val_nid, device)
-			# 	print('\t\tEval Acc {:.4f}'.format(eval_acc))
+	# 		# if epoch % args.eval_every == 0 and epoch != 0:
+	# 		# 	eval_acc = evaluate(model, val_g, val_nfeat, val_labels, val_nid, device)
+	# 		# 	print('\t\tEval Acc {:.4f}'.format(eval_acc))
 
-		# print('Avg cpu epoch time: {} ms'.format(avg*1000 / (epoch - 4)))
-	out_indent = 2 # skip the first 2 epochs, initial epoch time is not stable.
-	if len(avg_step_data_trans_time_list[out_indent:]) > 0:
+	# 	# print('Avg cpu epoch time: {} ms'.format(avg*1000 / (epoch - 4)))
+	# out_indent = 2 # skip the first 2 epochs, initial epoch time is not stable.
+	# if len(avg_step_data_trans_time_list[out_indent:]) > 0:
 		
-		total_avg_iteration_time = sum(avg_step_data_trans_time_list[out_indent:]) / len(avg_step_data_trans_time_list[out_indent:])
-		print('\ttotal avg iteration(step) data from cpu to GPU time:%.8f s' % (total_avg_iteration_time/1000))
-		# print(len(avg_step_data_trans_time_list))
+	# 	total_avg_iteration_time = sum(avg_step_data_trans_time_list[out_indent:]) / len(avg_step_data_trans_time_list[out_indent:])
+	# 	print('\ttotal avg iteration(step) data from cpu to GPU time:%.8f s' % (total_avg_iteration_time/1000))
+	# 	# print(len(avg_step_data_trans_time_list))
 	
-		total_avg_iteration_gpu_time = sum(avg_step_GPU_train_time_list[out_indent:]) / len(avg_step_GPU_train_time_list[out_indent:])
-		print('\ttotal avg iteration GPU training time:%.8f s' % (total_avg_iteration_gpu_time/1000))
-		# print(len(avg_step_GPU_train_time_list))
-		# print(avg_step_GPU_train_time_list)
+	# 	total_avg_iteration_gpu_time = sum(avg_step_GPU_train_time_list[out_indent:]) / len(avg_step_GPU_train_time_list[out_indent:])
+	# 	print('\ttotal avg iteration GPU training time:%.8f s' % (total_avg_iteration_gpu_time/1000))
+	# 	# print(len(avg_step_GPU_train_time_list))
+	# 	# print(avg_step_GPU_train_time_list)
 	
-		total_avg_step_time = sum(avg_step_time_list[out_indent:]) / len(avg_step_time_list[out_indent:])
-		print('\ttotal avg iteration (step) total cpu time:%.8f s' % (total_avg_step_time ))
-		# print(len(avg_step_time_list))
+	# 	total_avg_step_time = sum(avg_step_time_list[out_indent:]) / len(avg_step_time_list[out_indent:])
+	# 	print('\ttotal avg iteration (step) total cpu time:%.8f s' % (total_avg_step_time ))
+	# 	# print(len(avg_step_time_list))
 
-	avg_epoch_total_cpu_train_time = sum(epoch_train_CPU_time_list[out_indent:]) / len(epoch_train_CPU_time_list[out_indent:])
-	print('\ntotal avg epoch training  total cpu time:%.8f s' % (avg_epoch_total_cpu_train_time ))
-	# print(len(epoch_train_CPU_time_list[out_indent:]))
-	avg_block_generate_time = sum(block_generate_time_list[out_indent:]) / len(block_generate_time_list[out_indent:])
-	print('\ntotal avg block generate cpu time:%.8f second' % (avg_block_generate_time ))
+	# avg_epoch_total_cpu_train_time = sum(epoch_train_CPU_time_list[out_indent:]) / len(epoch_train_CPU_time_list[out_indent:])
+	# print('\ntotal avg epoch training  total cpu time:%.8f s' % (avg_epoch_total_cpu_train_time ))
+	# # print(len(epoch_train_CPU_time_list[out_indent:]))
+	# avg_block_generate_time = sum(block_generate_time_list[out_indent:]) / len(block_generate_time_list[out_indent:])
+	# print('\ntotal avg block generate cpu time:%.8f second' % (avg_block_generate_time ))
 	
 
-	# train_acc = evaluate(model, train_g, train_nfeat, train_labels, train_nid, device)
-	# print('train Acc: {:.4f}'.format(train_acc))
-	# test_acc = evaluate(model, test_g, test_nfeat, test_labels, test_nid, device)
-	# print('Test Acc: {:.4f}'.format(test_acc))
+	# # train_acc = evaluate(model, train_g, train_nfeat, train_labels, train_nid, device)
+	# # print('train Acc: {:.4f}'.format(train_acc))
+	# # test_acc = evaluate(model, test_g, test_nfeat, test_labels, test_nid, device)
+	# # print('Test Acc: {:.4f}'.format(test_acc))
 
 
 if __name__=='__main__':
@@ -289,23 +340,33 @@ if __name__=='__main__':
 	# argparser.add_argument('--dataset', type=str, default='karate')
 	argparser.add_argument('--dataset', type=str, default='reddit')
 	argparser.add_argument('--aggre', type=str, default='mean')
-	argparser.add_argument('--selection-method', type=str, default='range')
-	argparser.add_argument('--num-epochs', type=int, default=6)
+	argparser.add_argument('--selection-method', type=str, default='random')
+	# argparser.add_argument('--selection-method', type=str, default='range')
+	argparser.add_argument('--num-epochs', type=int, default=1)
 	argparser.add_argument('--num-hidden', type=int, default=16)
 	argparser.add_argument('--num-layers', type=int, default=1)
 	# argparser.add_argument('--fan-out', type=str, default='20')
 	argparser.add_argument('--fan-out', type=str, default='10')
-
-
 	# argparser.add_argument('--batch-size', type=int, default=196571)
 	# argparser.add_argument('--batch-size', type=int, default=98308)
 	# argparser.add_argument('--batch-size', type=int, default=49154)
 	# argparser.add_argument('--batch-size', type=int, default=24577)
 	# argparser.add_argument('--batch-size', type=int, default=12289)
 	# argparser.add_argument('--batch-size', type=int, default=6145)
-	argparser.add_argument('--batch-size', type=int, default=3000)
+	# argparser.add_argument('--batch-size', type=int, default=3000)
 	# argparser.add_argument('--batch-size', type=int, default=1500)
-	# argparser.add_argument('--batch-size', type=int, default=8)
+
+
+	# argparser.add_argument('--batch-size', type=int, default=153431)
+	# argparser.add_argument('--batch-size', type=int, default=76716)
+	# argparser.add_argument('--batch-size', type=int, default=38358)
+	# argparser.add_argument('--batch-size', type=int, default=19179)
+	argparser.add_argument('--batch-size', type=int, default=9590)
+	# argparser.add_argument('--batch-size', type=int, default=4795)
+	# argparser.add_argument('--batch-size', type=int, default=2400)
+	# argparser.add_argument('--batch-size', type=int, default=1200)
+
+	# argparser.add_argument('--batch-size', type=int, default=3)
 
 
 	argparser.add_argument('--log-every', type=int, default=5)
